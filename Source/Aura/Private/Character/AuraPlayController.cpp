@@ -4,9 +4,57 @@
 #include "Character/AuraPlayController.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Interaction/EnemyInterface.h"
+
 AAuraPlayController::AAuraPlayController()
 {
 	bReplicates = true;
+}
+
+void AAuraPlayController::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	CursorTrace();
+}
+
+void AAuraPlayController::CursorTrace()
+{
+	FHitResult CursorHit;
+	GetHitResultUnderCursor(ECC_Visibility,false,CursorHit);
+	if (!CursorHit.bBlockingHit) return;//检查是否碰撞被阻塞，也就是是否命中
+	
+	LastActor = ThisActor;
+	ThisActor = Cast<IEnemyInterface>(CursorHit.GetActor());
+	/*
+	 * 光标进行线性追踪的几种情况
+	 * a.两个Actor都是null的
+	 *	--什么都不需要做
+	 *b.LastActor is null&&ThisActor is valid
+	 *	--第一次追踪到Actor，将他进行高亮
+	 *c.LastActor is Valid&&thisActor is null
+	 *  --取消Actor的高亮
+	 *d.both actor is valid but ThisActor != LastActor
+	 *	--取消LastActor的高亮，使其ThisActor高亮
+	 *e.both actor is valid,and the same;
+	 *  --第一次已经高亮了，所以不需要再进行高亮了
+	 */
+	if (LastActor == nullptr)
+	{
+		if (ThisActor == nullptr){
+		}
+		if (ThisActor != nullptr)
+			ThisActor->HighlightActor();
+	}else
+	{
+		if (ThisActor == nullptr)
+			LastActor->UnHighlightActor();
+		if (ThisActor != nullptr&&ThisActor != LastActor)
+		{
+			LastActor->UnHighlightActor();
+			ThisActor->HighlightActor();
+		}
+		if (ThisActor != nullptr&&ThisActor == LastActor){}
+	}
 }
 
 void AAuraPlayController::BeginPlay()
@@ -50,3 +98,5 @@ void AAuraPlayController::Move(const FInputActionValue& InputActionValue)
 		ControlledPawn->AddMovementInput(RightVector,InputAxisVector.X);
 	}
 }
+
+
