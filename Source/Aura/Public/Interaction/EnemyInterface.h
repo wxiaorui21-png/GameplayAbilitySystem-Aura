@@ -24,4 +24,10 @@ class AURA_API IEnemyInterface
 public:
 	virtual void HighlightActor() = 0;//等于0使其成为纯虚函数，意味着不会在类中提供定义
 	virtual void UnHighlightActor() = 0;
+	
+	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
+	void SetCombatTarget(AActor* Target);
+	
+	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
+	AActor* GetCombatTarget();
 };
